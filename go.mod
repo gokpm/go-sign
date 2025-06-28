@@ -4,7 +4,7 @@ go 1.24.4
 
 require (
 	github.com/gokpm/go-codec v0.0.0-20250627190129-ddaf84003df9
-	github.com/gokpm/go-sig v0.0.0-20250627184507-fd1d5b14c432
+	github.com/gokpm/go-sig v0.0.0-20250628142517-ce08b94e5a61
 	github.com/golang-jwt/jwt/v5 v5.2.2
 )
 
