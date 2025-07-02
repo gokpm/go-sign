@@ -23,25 +23,25 @@ claims := sign.NewClaims(
 )
 
 // Create signer
-signer, err := sign.NewSigner(ctx, b64PrivateKey)
+signer, err := sign.NewSigner(b64PrivateKey)
 if err != nil {
     return err
 }
 
 // Sign token
-token, err := signer.Sign(ctx, claims)
+token, err := signer.Sign(claims)
 if err != nil {
     return err
 }
 
 // Create verifier
-verifier, err := sign.NewVerifier(ctx, b64PublicKey)
+verifier, err := sign.NewVerifier(b64PublicKey)
 if err != nil {
     return err
 }
 
 // Verify token
-claims, err := verifier.Verify(ctx, token)
+claims, err := verifier.Verify(token)
 if err != nil {
     return err
 }
@@ -69,24 +69,23 @@ func WithData(data any) ClaimOption
 
 ```go
 type Signer interface {
-    Sign(context.Context, *Claims) (string, error)
-    Verify(context.Context, string) (*Claims, error)
+    Sign(*Claims) (string, error)
+    Verify(string) (*Claims, error)
 }
 
 type Verifier interface {
-    Verify(context.Context, string) (*Claims, error)
+    Verify(string) (*Claims, error)
 }
 ```
 
 ### Signer/Verifier
 
 ```go
-func NewSigner(ctx context.Context, b64PrivateKey string) (Signer, error)
-func NewVerifier(ctx context.Context, b64PublicKey string) (Verifier, error)
+func NewSigner(b64PrivateKey string) (Signer, error)
+func NewVerifier(b64PublicKey string) (Verifier, error)
 ```
 
 ## Dependencies
 
 - `github.com/golang-jwt/jwt/v5`
 - `github.com/gokpm/go-codec`
-- `github.com/gokpm/go-sig`

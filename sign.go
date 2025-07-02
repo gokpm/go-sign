@@ -1,39 +1,45 @@
 package sign
 
 import (
-	"context"
 	"crypto/ed25519"
 	"errors"
 	"time"
 
 	"github.com/gokpm/go-codec"
-	"github.com/gokpm/go-sig"
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// Signer interface provides methods for signing and verifying JWT tokens.
 type Signer interface {
-	Sign(context.Context, *Claims) (string, error)
-	Verify(context.Context, string) (*Claims, error)
+	Sign(*Claims) (string, error)
+	Verify(string) (*Claims, error)
 }
 
+// Verifier interface provides methods for verifying JWT tokens.
 type Verifier interface {
-	Verify(context.Context, string) (*Claims, error)
+	Verify(string) (*Claims, error)
 }
 
+// eddsa implements both Signer and Verifier interfaces using Ed25519 cryptography.
 type eddsa struct {
 	privateKey ed25519.PrivateKey
 	publicKey  ed25519.PublicKey
 }
 
-var ErrInvalidEd25519PrivateKey = errors.New("invalid Ed25519 private key")
-var ErrInvalidEd25519PublicKey = errors.New("invalid Ed25519 public key")
-var ErrInvalidEdDSASignature = errors.New("invalid EdDSA signature")
+// Error definitions for Ed25519 key and signature validation.
+var (
+	ErrInvalidEd25519PrivateKey = errors.New("invalid Ed25519 private key")
+	ErrInvalidEd25519PublicKey  = errors.New("invalid Ed25519 public key")
+	ErrInvalidEdDSASignature    = errors.New("invalid EdDSA signature")
+)
 
+// Claims represents JWT claims with additional custom data.
 type Claims struct {
 	jwt.RegisteredClaims
 	Data any `json:",omitempty"`
 }
 
+// NewClaims creates a new Claims instance with the provided options.
 func NewClaims(opts ...ClaimOption) *Claims {
 	c := &Claims{}
 	for _, opt := range opts {
@@ -42,52 +48,58 @@ func NewClaims(opts ...ClaimOption) *Claims {
 	return c
 }
 
+// ClaimOption is a functional option for configuring Claims.
 type ClaimOption func(*Claims)
 
+// WithIssuer sets the issuer claim.
 func WithIssuer(issuer string) ClaimOption {
 	return func(c *Claims) { c.Issuer = issuer }
 }
 
+// WithSubject sets the subject claim.
 func WithSubject(subject string) ClaimOption {
 	return func(c *Claims) { c.Subject = subject }
 }
 
+// WithAudience sets the audience claim.
 func WithAudience(audience ...string) ClaimOption {
 	return func(c *Claims) { c.Audience = audience }
 }
 
+// WithExpiresAt sets the expiration time claim.
 func WithExpiresAt(expiresAt time.Time) ClaimOption {
 	return func(c *Claims) { c.ExpiresAt = jwt.NewNumericDate(expiresAt) }
 }
 
+// WithNotBefore sets the not-before time claim.
 func WithNotBefore(notBefore time.Time) ClaimOption {
 	return func(c *Claims) { c.NotBefore = jwt.NewNumericDate(notBefore) }
 }
 
+// WithIssuedAt sets the issued-at time claim.
 func WithIssuedAt(issuedAt time.Time) ClaimOption {
 	return func(c *Claims) { c.IssuedAt = jwt.NewNumericDate(issuedAt) }
 }
 
+// WithID sets the JWT ID claim.
 func WithID(id string) ClaimOption {
 	return func(c *Claims) { c.ID = id }
 }
 
+// WithData sets custom data in the claims.
 func WithData(data any) ClaimOption {
 	return func(c *Claims) { c.Data = data }
 }
 
-func NewSigner(ctx context.Context, b64PrivateKey string) (Signer, error) {
-	log := sig.Start(ctx)
-	defer log.End()
-	privateBytes, err := codec.Decode(log.Ctx(), b64PrivateKey)
+// NewSigner creates a new Signer instance from a base64-encoded Ed25519 private key.
+func NewSigner(b64PrivateKey string) (Signer, error) {
+	privateBytes, err := codec.Decode(b64PrivateKey)
 	if err != nil {
-		log.Error(err)
 		return nil, err
 	}
 	privateKey := ed25519.PrivateKey(privateBytes)
 	publicKey, ok := privateKey.Public().(ed25519.PublicKey)
 	if !ok {
-		log.Error(ErrInvalidEd25519PublicKey)
 		return nil, ErrInvalidEd25519PublicKey
 	}
 	return &eddsa{
@@ -96,47 +108,40 @@ func NewSigner(ctx context.Context, b64PrivateKey string) (Signer, error) {
 	}, nil
 }
 
-func NewVerifier(ctx context.Context, b64PublicKey string) (Verifier, error) {
-	log := sig.Start(ctx)
-	defer log.End()
-	publicBytes, err := codec.Decode(log.Ctx(), b64PublicKey)
+// NewVerifier creates a new Verifier instance from a base64-encoded Ed25519 public key.
+func NewVerifier(b64PublicKey string) (Verifier, error) {
+	publicBytes, err := codec.Decode(b64PublicKey)
 	if err != nil {
-		log.Error(err)
 		return nil, err
 	}
 	publicKey := ed25519.PublicKey(publicBytes)
 	return &eddsa{publicKey: publicKey}, nil
 }
 
-func (e *eddsa) Sign(ctx context.Context, claims *Claims) (string, error) {
-	log := sig.Start(ctx)
-	defer log.End()
+// Sign creates and signs a JWT token with the provided claims.
+func (e *eddsa) Sign(claims *Claims) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, claims)
 	signed, err := token.SignedString(e.privateKey)
 	if err != nil {
-		log.Error(err)
 		return "", err
 	}
 	return signed, nil
 }
 
-func (e *eddsa) Verify(ctx context.Context, token string) (*Claims, error) {
-	log := sig.Start(ctx)
-	defer log.End()
+// Verify parses and validates a JWT token, returning the claims if valid.
+func (e *eddsa) Verify(token string) (*Claims, error) {
 	claims := &Claims{}
 	_, err := jwt.ParseWithClaims(
 		token,
 		claims,
 		func(token *jwt.Token) (any, error) {
 			if token.Method != jwt.SigningMethodEdDSA {
-				log.Error(ErrInvalidEdDSASignature)
 				return nil, ErrInvalidEdDSASignature
 			}
 			return e.publicKey, nil
 		},
 	)
 	if err != nil {
-		log.Error(err)
 		return nil, err
 	}
 	return claims, nil

@@ -1,7 +1,6 @@
 package sign_test
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 	"time"
@@ -18,24 +17,21 @@ const (
 )
 
 func TestNewSigner(t *testing.T) {
-	ctx := context.TODO()
-	_, err := sign.NewSigner(ctx, privateKey1)
+	_, err := sign.NewSigner(privateKey1)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestNewVerifier(t *testing.T) {
-	ctx := context.TODO()
-	_, err := sign.NewVerifier(ctx, publicKey1)
+	_, err := sign.NewVerifier(publicKey1)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestSigner(t *testing.T) {
-	ctx := context.TODO()
-	signer, err := sign.NewSigner(ctx, privateKey1)
+	signer, err := sign.NewSigner(privateKey1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,11 +45,11 @@ func TestSigner(t *testing.T) {
 		sign.WithIssuedAt(now),
 		sign.WithID("0"),
 	)
-	token, err := signer.Sign(ctx, claims1)
+	token, err := signer.Sign(claims1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	claims2, err := signer.Verify(ctx, token)
+	claims2, err := signer.Verify(token)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,12 +67,11 @@ func TestSigner(t *testing.T) {
 }
 
 func TestSignerVerifier(t *testing.T) {
-	ctx := context.TODO()
-	signer, err := sign.NewSigner(ctx, privateKey1)
+	signer, err := sign.NewSigner(privateKey1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	verifier, err := sign.NewVerifier(ctx, publicKey1)
+	verifier, err := sign.NewVerifier(publicKey1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -90,11 +85,11 @@ func TestSignerVerifier(t *testing.T) {
 		sign.WithIssuedAt(now),
 		sign.WithID("0"),
 	)
-	token, err := signer.Sign(ctx, claims1)
+	token, err := signer.Sign(claims1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	claims2, err := verifier.Verify(ctx, token)
+	claims2, err := verifier.Verify(token)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -112,12 +107,11 @@ func TestSignerVerifier(t *testing.T) {
 }
 
 func TestSignerVerifierDifferentKeys1(t *testing.T) {
-	ctx := context.TODO()
-	signer, err := sign.NewSigner(ctx, privateKey1)
+	signer, err := sign.NewSigner(privateKey1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	verifier, err := sign.NewVerifier(ctx, publicKey2)
+	verifier, err := sign.NewVerifier(publicKey2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -131,23 +125,22 @@ func TestSignerVerifierDifferentKeys1(t *testing.T) {
 		sign.WithIssuedAt(now),
 		sign.WithID("0"),
 	)
-	token, err := signer.Sign(ctx, claims1)
+	token, err := signer.Sign(claims1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = verifier.Verify(ctx, token)
+	_, err = verifier.Verify(token)
 	if err == nil {
 		t.Fatal("expected error")
 	}
 }
 
 func TestSignerVerifierDifferentKeys2(t *testing.T) {
-	ctx := context.TODO()
-	signer, err := sign.NewSigner(ctx, privateKey2)
+	signer, err := sign.NewSigner(privateKey2)
 	if err != nil {
 		t.Fatal(err)
 	}
-	verifier, err := sign.NewVerifier(ctx, publicKey1)
+	verifier, err := sign.NewVerifier(publicKey1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -161,23 +154,22 @@ func TestSignerVerifierDifferentKeys2(t *testing.T) {
 		sign.WithIssuedAt(now),
 		sign.WithID("0"),
 	)
-	token, err := signer.Sign(ctx, claims1)
+	token, err := signer.Sign(claims1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = verifier.Verify(ctx, token)
+	_, err = verifier.Verify(token)
 	if err == nil {
 		t.Fatal("expected error")
 	}
 }
 
 func TestSignerVerifierSleep(t *testing.T) {
-	ctx := context.TODO()
-	signer, err := sign.NewSigner(ctx, privateKey1)
+	signer, err := sign.NewSigner(privateKey1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	verifier, err := sign.NewVerifier(ctx, publicKey1)
+	verifier, err := sign.NewVerifier(publicKey1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -191,24 +183,23 @@ func TestSignerVerifierSleep(t *testing.T) {
 		sign.WithIssuedAt(now),
 		sign.WithID("0"),
 	)
-	token, err := signer.Sign(ctx, claims1)
+	token, err := signer.Sign(claims1)
 	if err != nil {
 		t.Fatal(err)
 	}
 	time.Sleep(1 * time.Millisecond)
-	_, err = verifier.Verify(ctx, token)
+	_, err = verifier.Verify(token)
 	if err == nil {
 		t.Fatal("expected error")
 	}
 }
 
 func TestSignerVerifierNotBefore(t *testing.T) {
-	ctx := context.TODO()
-	signer, err := sign.NewSigner(ctx, privateKey1)
+	signer, err := sign.NewSigner(privateKey1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	verifier, err := sign.NewVerifier(ctx, publicKey1)
+	verifier, err := sign.NewVerifier(publicKey1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -222,23 +213,22 @@ func TestSignerVerifierNotBefore(t *testing.T) {
 		sign.WithIssuedAt(now),
 		sign.WithID("0"),
 	)
-	token, err := signer.Sign(ctx, claims1)
+	token, err := signer.Sign(claims1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = verifier.Verify(ctx, token)
+	_, err = verifier.Verify(token)
 	if err == nil {
 		t.Fatal("expected error")
 	}
 }
 
 func TestSignerVerifierNotBeforeSleep(t *testing.T) {
-	ctx := context.TODO()
-	signer, err := sign.NewSigner(ctx, privateKey1)
+	signer, err := sign.NewSigner(privateKey1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	verifier, err := sign.NewVerifier(ctx, publicKey1)
+	verifier, err := sign.NewVerifier(publicKey1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -252,12 +242,12 @@ func TestSignerVerifierNotBeforeSleep(t *testing.T) {
 		sign.WithIssuedAt(now),
 		sign.WithID("0"),
 	)
-	token, err := signer.Sign(ctx, claims1)
+	token, err := signer.Sign(claims1)
 	if err != nil {
 		t.Fatal(err)
 	}
 	time.Sleep(1 * time.Second)
-	claims2, err := verifier.Verify(ctx, token)
+	claims2, err := verifier.Verify(token)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -280,12 +270,11 @@ type Data struct {
 }
 
 func TestSignerVerifierNotBeforeSleepData(t *testing.T) {
-	ctx := context.TODO()
-	signer, err := sign.NewSigner(ctx, privateKey1)
+	signer, err := sign.NewSigner(privateKey1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	verifier, err := sign.NewVerifier(ctx, publicKey1)
+	verifier, err := sign.NewVerifier(publicKey1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -304,12 +293,12 @@ func TestSignerVerifierNotBeforeSleepData(t *testing.T) {
 		sign.WithID("0"),
 		sign.WithData(data),
 	)
-	token, err := signer.Sign(ctx, claims1)
+	token, err := signer.Sign(claims1)
 	if err != nil {
 		t.Fatal(err)
 	}
 	time.Sleep(1 * time.Second)
-	claims2, err := verifier.Verify(ctx, token)
+	claims2, err := verifier.Verify(token)
 	if err != nil {
 		t.Fatal(err)
 	}
